@@ -29,8 +29,7 @@ public class Animation extends JPanel {
 			System.out.println("xLoc: " + xLoc);
 			System.out.println("oldYLoc: " + oldYLoc);
 			System.out.println("yLoc: " + yLoc);
-			
-			
+
 			if (xLoc > oldXLoc && yLoc > oldYLoc)
 				return DIRECTION.SOUTHEAST.ordinal();
 			if (xLoc < oldXLoc && yLoc < oldYLoc)
@@ -74,22 +73,35 @@ public class Animation extends JPanel {
 		int oldXLoc = xloc;
 		int oldYLoc = yloc;
 		if (!(yloc + imgHeight > frameHeight) && !(xloc + imgWidth > frameWidth)) {
-			if (!atTheWall) {
+			if (!atTheWall && xloc < frameHeight) {
 				dir = DIRECTION.getDirection(oldXLoc, xloc + xIncr, oldYLoc, yloc + yIncr);
 				g.drawImage(pics[dir][picNum], xloc += xIncr, yloc += yIncr, Color.gray, this);
-			} else {
-				System.out.println("Im at the wall..");
+			} 
+			if (!atTheWall && xloc >= frameHeight) {
+				dir = DIRECTION.getDirection(oldXLoc, xloc + xIncr, oldYLoc, yloc - yIncr);
+				g.drawImage(pics[dir][picNum], xloc += xIncr, yloc -= yIncr, Color.gray, this);
+			} 
+			if (atTheWall && xloc > 0) {
 				dir = DIRECTION.getDirection(oldXLoc, xloc - xIncr, oldYLoc, yloc + yIncr);
-				g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc+= yIncr, Color.gray, this);
+				g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc += yIncr, Color.gray, this);
 			}
-		} else {
-			atTheWall = true;
-			xloc -= xIncr;
-			yloc -= yIncr;
-		}
 			
+			if (atTheWall && xloc <= 0) {
+				dir = DIRECTION.getDirection(oldXLoc, xloc - xIncr, oldYLoc, yloc - yIncr);
+				g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc -= yIncr, Color.gray, this);
+			}
+
+			if ((yloc + imgHeight > frameHeight) || (xloc + imgWidth > frameWidth)) {
+				atTheWall=true;
+				xloc-=xIncr;
+				yloc-=yIncr;
+			}
+			if ((xloc <= 0 && yloc <= 0) || (xloc < 0 || yloc < 0))   {
+				atTheWall = false;
+
+			}
 		}
-	
+	}
 
 	// TODO: Keep the orc from walking off-screen, turn around when bouncing off
 	// walls.
@@ -107,7 +119,7 @@ public class Animation extends JPanel {
 		for (int i = 0; i < 1000; i++) {
 			frame.repaint();
 			try {
-				Thread.sleep(100);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
