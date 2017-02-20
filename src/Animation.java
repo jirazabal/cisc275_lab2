@@ -24,39 +24,37 @@ public class Animation extends JPanel {
 			direction = dir;
 		}
 
-		public static int getDirection(int oldXLoc, int xLoc, int oldYLoc, int yLoc) {
-			System.out.println("oldXLoc: " + oldXLoc);
-			System.out.println("xLoc: " + xLoc);
-			System.out.println("oldYLoc: " + oldYLoc);
-			System.out.println("yLoc: " + yLoc);
+		public static int changeDirection(int xloc, int yloc) {
+			
+			System.out.println("xloc :" + xloc + "\n" + "y loc :" + yloc);
 
-			if (xLoc > oldXLoc && yLoc > oldYLoc)
-				return DIRECTION.SOUTHEAST.ordinal();
-			if (xLoc < oldXLoc && yLoc < oldYLoc)
-				return DIRECTION.NORTHWEST.ordinal();
-			if (xLoc > oldXLoc && yLoc < oldYLoc)
-				return DIRECTION.NORTHEAST.ordinal();
-			if (xLoc < oldXLoc && yLoc > oldYLoc)
+			if (xloc + imgWidth >= frameWidth && dir == DIRECTION.SOUTHEAST.ordinal()) // right wall
 				return DIRECTION.SOUTHWEST.ordinal();
-			if (xLoc > oldXLoc)
-				return DIRECTION.EAST.ordinal();
-			if (xLoc < oldXLoc)
-				return DIRECTION.WEST.ordinal();
-			if (yLoc > oldYLoc)
-				return DIRECTION.SOUTH.ordinal();
-			if (yLoc < oldYLoc)
-				return DIRECTION.NORTH.ordinal();
+			if (xloc + imgWidth >= frameWidth && dir == DIRECTION.NORTHEAST.ordinal()) // right wall
+				return DIRECTION.NORTHWEST.ordinal();
+			if (yloc + imgHeight >= frameHeight && dir == DIRECTION.SOUTHWEST.ordinal()) // bottom wall
+				return DIRECTION.NORTHWEST.ordinal();
+			if (yloc + imgHeight >= frameHeight && dir == DIRECTION.SOUTHEAST.ordinal()) // bottom wall
+				return DIRECTION.NORTHEAST.ordinal();
+			if (xloc <= 0 && dir == DIRECTION.SOUTHWEST.ordinal()) // left wall
+				return DIRECTION.SOUTHEAST.ordinal();
+			if (xloc <= 0 && dir == DIRECTION.NORTHWEST.ordinal()) // left wall
+				return DIRECTION.NORTHEAST.ordinal();
+			if (yloc <= 0 && dir == DIRECTION.NORTHEAST.ordinal()) // top wall
+				return DIRECTION.SOUTHEAST.ordinal();
+			if (yloc <= 0 && dir == DIRECTION.NORTHWEST.ordinal()) // top wall
+				return DIRECTION.SOUTHWEST.ordinal();
 			else
-				return 0;
-
+				return DIRECTION.SOUTHEAST.ordinal();
 		}
 	}
 
 	final int frameCount = 10;
 	int picNum = 0;
 	BufferedImage[][] pics;
-	int dir = 0; // clockwise starting at NW = 0...
-	boolean atTheWall = false;
+	static int dir = DIRECTION.SOUTHEAST.ordinal(); // assume walking SOUTHEAST
+													// initially
+	static boolean atTheWall = false;
 	int xloc = 0;
 	int yloc = 0;
 	final int xIncr = 8;
@@ -69,38 +67,36 @@ public class Animation extends JPanel {
 	// Override this JPanel's paint method to cycle through picture array and
 	// draw images
 	public void paint(Graphics g) {
-		picNum = (picNum + 1) % frameCount;
-		int oldXLoc = xloc;
-		int oldYLoc = yloc;
-		if (!(yloc + imgHeight > frameHeight) && !(xloc + imgWidth > frameWidth)) {
-			if (!atTheWall && xloc < frameHeight) {
-				dir = DIRECTION.getDirection(oldXLoc, xloc + xIncr, oldYLoc, yloc + yIncr);
-				g.drawImage(pics[dir][picNum], xloc += xIncr, yloc += yIncr, Color.gray, this);
-			} 
-			if (!atTheWall && xloc >= frameHeight) {
-				dir = DIRECTION.getDirection(oldXLoc, xloc + xIncr, oldYLoc, yloc - yIncr);
-				g.drawImage(pics[dir][picNum], xloc += xIncr, yloc -= yIncr, Color.gray, this);
-			} 
-			if (atTheWall && xloc > 0) {
-				dir = DIRECTION.getDirection(oldXLoc, xloc - xIncr, oldYLoc, yloc + yIncr);
-				g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc += yIncr, Color.gray, this);
-			}
-			
-			if (atTheWall && xloc <= 0) {
-				dir = DIRECTION.getDirection(oldXLoc, xloc - xIncr, oldYLoc, yloc - yIncr);
-				g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc -= yIncr, Color.gray, this);
-			}
-
-			if ((yloc + imgHeight > frameHeight) || (xloc + imgWidth > frameWidth)) {
-				atTheWall=true;
-				xloc-=xIncr;
-				yloc-=yIncr;
-			}
-			if ((xloc <= 0 && yloc <= 0) || (xloc < 0 || yloc < 0))   {
-				atTheWall = false;
-
-			}
+		if (atTheWall()) {
+			dir = DIRECTION.changeDirection(xloc, yloc);
+			System.out.println("dir: "+dir);
 		}
+		keepWalking(g, dir);
+	}
+
+	public boolean atTheWall() {
+		if (xloc < 0 || yloc < 0 || xloc + imgWidth >= frameWidth || yloc + imgHeight >= frameHeight)
+			return atTheWall = true;
+		else
+			return atTheWall = false;
+	}
+
+	public void keepWalking(Graphics g, int dir) {
+		picNum = (picNum + 1) % frameCount;
+
+		if (dir == DIRECTION.SOUTHWEST.ordinal()) {
+			g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc += yIncr, Color.gray, this);
+		}
+		if (dir == DIRECTION.SOUTHEAST.ordinal()) {
+			g.drawImage(pics[dir][picNum], xloc += xIncr, yloc += yIncr, Color.gray, this);
+		}
+		if (dir == DIRECTION.NORTHWEST.ordinal()) {
+			g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc -= yIncr, Color.gray, this);
+		}
+		if (dir == DIRECTION.NORTHEAST.ordinal()) {
+			g.drawImage(pics[dir][picNum], xloc += xIncr, yloc -= yIncr, Color.gray, this);
+		}
+
 	}
 
 	// TODO: Keep the orc from walking off-screen, turn around when bouncing off
