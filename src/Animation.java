@@ -1,5 +1,6 @@
 
-//T Harvey
+//J Irazabal 
+//with assistance from T Harvey :)
 //based loosely on http://www.java2s.com/Code/JavaAPI/java.awt/GraphicsdrawImageImageimgintxintyImageObserverob.htm
 
 import java.awt.Color;
@@ -16,6 +17,7 @@ import javax.swing.JPanel;
 public class Animation extends JPanel {
 
 	public enum DIRECTION {
+		//this enum is for ease of reading the direction in which the orc is travelling
 		NORTHWEST(0), NORTH(1), NORTHEAST(2), EAST(3), SOUTHEAST(4), SOUTH(5), SOUTHWEST(6), WEST(7);
 
 		private int direction;
@@ -25,9 +27,8 @@ public class Animation extends JPanel {
 		}
 
 		public static int changeDirection(int xloc, int yloc) {
+			//figures out which direction to travel when at a wall 
 			
-			System.out.println("xloc :" + xloc + "\n" + "y loc :" + yloc);
-
 			if (xloc + imgWidth >= frameWidth && dir == DIRECTION.SOUTHEAST.ordinal()) // right wall
 				return DIRECTION.SOUTHWEST.ordinal();
 			if (xloc + imgWidth >= frameWidth && dir == DIRECTION.NORTHEAST.ordinal()) // right wall
@@ -45,7 +46,7 @@ public class Animation extends JPanel {
 			if (yloc <= 0 && dir == DIRECTION.NORTHWEST.ordinal()) // top wall
 				return DIRECTION.SOUTHWEST.ordinal();
 			else
-				return DIRECTION.SOUTHEAST.ordinal();
+				throw new RuntimeException();
 		}
 	}
 
@@ -67,20 +68,24 @@ public class Animation extends JPanel {
 	// Override this JPanel's paint method to cycle through picture array and
 	// draw images
 	public void paint(Graphics g) {
+		// if we are at a wall, change direction, then just keep walking.
 		if (atTheWall()) {
-			dir = DIRECTION.changeDirection(xloc, yloc);
-			System.out.println("dir: "+dir);
+			try {
+				dir = DIRECTION.changeDirection(xloc, yloc);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		keepWalking(g, dir);
 	}
-
+    // this function figures out if we hit a wall
 	public boolean atTheWall() {
 		if (xloc < 0 || yloc < 0 || xloc + imgWidth >= frameWidth || yloc + imgHeight >= frameHeight)
 			return atTheWall = true;
 		else
 			return atTheWall = false;
 	}
-
+    // this function figures out which way to walk based on current direction and point of origin
 	public void keepWalking(Graphics g, int dir) {
 		picNum = (picNum + 1) % frameCount;
 
@@ -98,11 +103,6 @@ public class Animation extends JPanel {
 		}
 
 	}
-
-	// TODO: Keep the orc from walking off-screen, turn around when bouncing off
-	// walls.
-	// Be sure that animation picture direction matches what is happening on
-	// screen.
 
 	// Make frame, loop on repaint and wait
 	public static void main(String[] args) {
@@ -140,9 +140,6 @@ public class Animation extends JPanel {
 		for (int i = 0; i < frameCount; i++)
 			for (int j = 0; j < 7; j++)
 				pics[j][i] = img[j].getSubimage(imgWidth * i, 0, imgWidth, imgHeight);
-
-		// TODO: Change this constructor so that at least eight orc animation
-		// pngs are loaded
 	}
 
 	// Read image from file and return
@@ -155,7 +152,5 @@ public class Animation extends JPanel {
 			e.printStackTrace();
 		}
 		return null;
-
-		// TODO: Change this method so you can load other orc animation bitmaps
 	}
 }
