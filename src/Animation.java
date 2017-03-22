@@ -5,50 +5,23 @@
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractButton;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import animationEnums.DIRECTION;
+
 public class Animation extends JPanel {
 
-	public enum DIRECTION {
-		//this enum is for ease of reading the direction in which the orc is travelling
-		NORTHWEST(0), NORTH(1), NORTHEAST(2), EAST(3), SOUTHEAST(4), SOUTH(5), SOUTHWEST(6), WEST(7);
-
-		private int direction;
-
-		DIRECTION(int dir) {
-			direction = dir;
-		}
-
-		public static int changeDirection(int xloc, int yloc) {
-			//figures out which direction to travel when at a wall 
-			
-			if (xloc + imgWidth >= frameWidth && dir == DIRECTION.SOUTHEAST.ordinal()) // right wall
-				return DIRECTION.SOUTHWEST.ordinal();
-			if (xloc + imgWidth >= frameWidth && dir == DIRECTION.NORTHEAST.ordinal()) // right wall
-				return DIRECTION.NORTHWEST.ordinal();
-			if (yloc + imgHeight >= frameHeight && dir == DIRECTION.SOUTHWEST.ordinal()) // bottom wall
-				return DIRECTION.NORTHWEST.ordinal();
-			if (yloc + imgHeight >= frameHeight && dir == DIRECTION.SOUTHEAST.ordinal()) // bottom wall
-				return DIRECTION.NORTHEAST.ordinal();
-			if (xloc <= 0 && dir == DIRECTION.SOUTHWEST.ordinal()) // left wall
-				return DIRECTION.SOUTHEAST.ordinal();
-			if (xloc <= 0 && dir == DIRECTION.NORTHWEST.ordinal()) // left wall
-				return DIRECTION.NORTHEAST.ordinal();
-			if (yloc <= 0 && dir == DIRECTION.NORTHEAST.ordinal()) // top wall
-				return DIRECTION.SOUTHEAST.ordinal();
-			if (yloc <= 0 && dir == DIRECTION.NORTHWEST.ordinal()) // top wall
-				return DIRECTION.SOUTHWEST.ordinal();
-			else
-				throw new RuntimeException();
-		}
-	}
+	
 
 	final int frameCount = 10;
 	int picNum = 0;
@@ -64,14 +37,40 @@ public class Animation extends JPanel {
 	final static int frameHeight = 600;
 	final static int imgWidth = 165;
 	final static int imgHeight = 165;
+	
+
+	public static int changeDirection(int xloc, int yloc) {
+		//figures out which direction to travel when at a wall 
+		
+		if (xloc + imgWidth >= frameWidth && dir == DIRECTION.SOUTHEAST.ordinal()) // right wall
+			return DIRECTION.SOUTHWEST.ordinal();
+		if (xloc + imgWidth >= frameWidth && dir == DIRECTION.NORTHEAST.ordinal()) // right wall
+			return DIRECTION.NORTHWEST.ordinal();
+		if (yloc + imgHeight >= frameHeight && dir == DIRECTION.SOUTHWEST.ordinal()) // bottom wall
+			return DIRECTION.NORTHWEST.ordinal();
+		if (yloc + imgHeight >= frameHeight && dir == DIRECTION.SOUTHEAST.ordinal()) // bottom wall
+			return DIRECTION.NORTHEAST.ordinal();
+		if (xloc <= 0 && dir == DIRECTION.SOUTHWEST.ordinal()) // left wall
+			return DIRECTION.SOUTHEAST.ordinal();
+		if (xloc <= 0 && dir == DIRECTION.NORTHWEST.ordinal()) // left wall
+			return DIRECTION.NORTHEAST.ordinal();
+		if (yloc <= 0 && dir == DIRECTION.NORTHEAST.ordinal()) // top wall
+			return DIRECTION.SOUTHEAST.ordinal();
+		if (yloc <= 0 && dir == DIRECTION.NORTHWEST.ordinal()) // top wall
+			return DIRECTION.SOUTHWEST.ordinal();
+		else
+			throw new RuntimeException();
+	}
 
 	// Override this JPanel's paint method to cycle through picture array and
 	// draw images
 	public void paint(Graphics g) {
 		// if we are at a wall, change direction, then just keep walking.
+	
+	    
 		if (atTheWall()) {
 			try {
-				dir = DIRECTION.changeDirection(xloc, yloc);
+				dir = changeDirection(xloc, yloc);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -85,23 +84,24 @@ public class Animation extends JPanel {
 		else
 			return atTheWall = false;
 	}
+	
     // this function figures out which way to walk based on current direction and point of origin
 	public void keepWalking(Graphics g, int dir) {
 		picNum = (picNum + 1) % frameCount;
 
 		if (dir == DIRECTION.SOUTHWEST.ordinal()) {
-			g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc += yIncr, Color.gray, this);
+			 xloc -= xIncr; yloc += yIncr;
 		}
 		if (dir == DIRECTION.SOUTHEAST.ordinal()) {
-			g.drawImage(pics[dir][picNum], xloc += xIncr, yloc += yIncr, Color.gray, this);
+			 xloc += xIncr; yloc += yIncr;
 		}
 		if (dir == DIRECTION.NORTHWEST.ordinal()) {
-			g.drawImage(pics[dir][picNum], xloc -= xIncr, yloc -= yIncr, Color.gray, this);
+			 xloc -= xIncr; yloc -= yIncr;
 		}
 		if (dir == DIRECTION.NORTHEAST.ordinal()) {
-			g.drawImage(pics[dir][picNum], xloc += xIncr, yloc -= yIncr, Color.gray, this);
+			 xloc += xIncr; yloc -= yIncr;
 		}
-
+		g.drawImage(pics[dir][picNum], xloc, yloc, Color.gray, this);
 	}
 
 	// Make frame, loop on repaint and wait
@@ -112,6 +112,12 @@ public class Animation extends JPanel {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(frameWidth, frameHeight);
 		frame.setVisible(true);
+		
+		JButton b2 = new JButton("ORC SPAWN");
+	    b2.setVerticalTextPosition(AbstractButton.BOTTOM);
+	    b2.setHorizontalTextPosition(AbstractButton.CENTER);
+	    b2.setMnemonic(KeyEvent.VK_M);
+	    
 		for (int i = 0; i < 1000; i++) {
 			frame.repaint();
 			try {
